@@ -1,63 +1,89 @@
-import React from 'react'
-import { Form } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import React, { useContext, useState } from 'react'
+import { Form, Spinner } from 'react-bootstrap'
+import { Link, useNavigate } from 'react-router-dom'
 import adminlogin from '../Admin/images/adminlogin.png'
-import adminregister from '../Admin/images/adminregister.png'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { adminLoginAPI } from '../../Services/allAPIs';
+import { tokenAuthenticationContext } from '../../Context API/Auth';
 
 
-function AdminAut({insideRegister}) {
+function AdminAut() {
+  const [userData, setUserData] = useState({
+    email: "", password: ""
+  })
+  const { isAuthorised, setIsAuthorised } = useContext(tokenAuthenticationContext)
+  const navigate = useNavigate()
+  const [loginDealy, setLoginDelay] = useState(false)
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    const { email, password } = userData
+    if (!email || !password) {
+      toast.warning('please fill the form completely')
+    } else {
+      try {
+        const result = await adminLoginAPI({ email, password })
+        console.log(result);
+        if (result.status === 200) {
+          sessionStorage.setItem("studentname", result.data.existingAdmin.email)
+
+          setIsAuthorised(true)
+          setLoginDelay(true)
+
+          setTimeout(() => {
+            setUserData({ email: "", password: "" })
+            navigate('/adminhome')
+            setLoginDelay(false)
+          }, 2000);
+
+        } else {
+          toast.warning(`${result.response.data}`)
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }
   return (
     <>
-    <div className='d-flex justify-content-center align-items-center' style={{ width: '100%', height: '100vh',backgroundImage:`url("https://wallpaperaccess.com/full/93391.jpg")`}}>
-      <div className="container w-75">
-        <Link to={'/'}> <i className='fa-solid fa-arrow-left me-1'></i>Back to Home</Link>
-        <div className='card shadow p-5' style={{ backgroundImage: `url("https://static.vecteezy.com/system/resources/previews/005/182/612/non_2x/green-abstract-geometric-shape-background-free-vector.jpg")` }}>
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              {insideRegister? <img src={adminregister} alt="" />: <img src={adminlogin}  alt="" />}
-            </div>
-            <div className="col-lg-6">
-              <div className="d-flex align-items-center flex-column">
-                {/* <h1 className='fw-bolder text-danger-emphasis mt-2'><i className='fa-solid fa-paperclip me-4' style={{ height: '41px' }}></i>Admin login</h1> */}
-                {insideRegister ? <h1 className='fw-bolder text-danger-emphasis mt-2'>Admin register</h1>:
-                <h1 className='fw-bolder text-danger-emphasis mt-2'>Admin login</h1>}
-                <h5 className='fw-bolder mt-2 pb-3 text-dark'>
-                  {insideRegister ? 'Sign up to your account' : 'Sign in to your account'}
-                </h5>
-                <Form className='w-100'>
-                  {insideRegister && (
-                    <Form.Group className="mb-3" controlId="formBasicName">
-                      <Form.Control type="text" placeholder="Enter Username" />
+      <div className='d-flex justify-content-center align-items-center' style={{ width: '100%', height: '100vh', backgroundImage: `url("https://wallpaperaccess.com/full/84248.png")`,backgroundSize:'cover' }}>
+        <div className="container w-75">
+          <Link to={'/'}> <i className='fa-solid fa-arrow-left me-1'></i>Back to Home</Link>
+          <div className='shadow p-5 rounded' style={{ backgroundImage: `url("https://wallpaperaccess.com/full/84248.png")`,backgroundSize:'cover' }}>
+            <div className="row align-items-center">
+              <div className="col-lg-6" style={{opacity:'1'}}>
+                <img src={adminlogin} alt="" />
+              </div>
+              <div className="col-lg-6">
+                <div className="d-flex align-items-center flex-column">
+
+
+                  <h1 className='fw-bolder mt-2'>Admin login</h1>
+                  <h5 className='fw-bolder mt-2 pb-3 text-dark'>
+
+                  </h5>
+                  <Form className='w-100'>
+
+                    <Form.Group className="mb-3 rounded" controlId="formBasicEmail" >
+                      <Form.Control type="email" placeholder="Enter email " onChange={(e) => setUserData({ ...userData, email: e.target.value })} value={userData.email} />
                     </Form.Group>
-                  )}
+                    <Form.Group className="mb-3 rounded" controlId="formBasicPassword">
+                      <Form.Control type="password" placeholder="Password" onChange={(e) => setUserData({ ...userData, password: e.target.value })} value={userData.password} />
+                    </Form.Group>
+                    <div>
+                      <button onClick={handleLogin} className='btn btn-light mb-2'>Login { loginDealy && <Spinner animation="border" variant="primary" />}</button>
+                    </div>
 
-                  <Form.Group className="mb-3" controlId="formBasicEmail" >
-                    <Form.Control type="email" placeholder="Enter email"  />
-                  </Form.Group>
-                  <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Control type="password" placeholder="Password"  />
-                  </Form.Group>
-                  {
-                    insideRegister ?
-                      <div>
-                        <button className='btn btn-light mb-2'>Register</button>
-                        <p>Already have an account? Click here to <Link to={'/admin-login'}>Login</Link></p>
-                      </div> :
-                      <div>
-                       <Link to={'/adminhome'}> <button  className='btn btn-light mb-2'>Login </button></Link>
-                        <p>New User? Click Here to <Link to={'/admin-register'}>Register</Link></p>
-                      </div>
 
-                  }
-                 
-                </Form>
+
+                  </Form>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    
+      <ToastContainer autoClose={3000} />
     </>
   )
 }

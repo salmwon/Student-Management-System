@@ -1,17 +1,26 @@
-import React from 'react'
-import Button from 'react-bootstrap/Button';
+import React, { useContext, useState } from 'react'
 import Container from 'react-bootstrap/Container';
-import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
 import logo from '../assets/Images/logo.png'
-import { Menu, theme } from 'antd';
-import { Link } from 'react-router-dom';
-
-
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, Spinner } from 'react-bootstrap';
+import { tokenAuthenticationContext } from '../Context API/Auth';
 
 function Header() {
+  const{isAuthorised, setIsAuthorised}=useContext(tokenAuthenticationContext)
+  const [loginDealy, setLoginDelay] = useState(false)
+  const navigate=useNavigate()
+  const handleLogout=()=>{
+    setIsAuthorised(false)
+    setLoginDelay(true)
+
+    setTimeout(() => {
+      navigate('/')
+      setLoginDelay(false)
+      sessionStorage.removeItem("studentname")
+    }, 2000);
+  }
   return (
     <Navbar expand="lg" className='bg-dark-emphasis'>
       <Container fluid>
@@ -26,19 +35,10 @@ function Header() {
             <Link style={{ textDecoration:'none'}} to={'/adminhome'}><Nav.Link href="#action1">Home</Nav.Link></Link>
             <Link style={{ textDecoration:'none'}} to={'/leavemanagement'}><Nav.Link href="#action2">Leave management</Nav.Link></Link>
             <Link style={{textDecoration:'none'}} to={'/notes'}><Nav.Link href="#action3"> Notes</Nav.Link></Link>
-            <Link style={{textDecoration:'none'}} to={'/assignment'}><Nav.Link href="#action4">Assignment</Nav.Link></Link>
             <Link style={{textDecoration:'none'}} to={'/announcements'}><Nav.Link href="#action5">Announcements</Nav.Link></Link>
+            <Button onClick={handleLogout}  variant="outline-secondary"  style={{marginLeft:'280px'}}><i class="fa-solid fa-right-from-bracket me-1"></i>Logout {loginDealy && <Spinner animation="border" variant="danger" />}</Button>
           </Nav>
-          <Form className="d-flex">
-            <Form.Control
-              type="search"
-              placeholder="Search"
-              className="me-2"
-              aria-label="Search"
-            />
-            <Button variant="outline-success">Search</Button>
-          </Form>
-          <Nav.Link className='ms-5' href="#action5"><i class="fa-solid fa-user"></i>Welcome <p>Admin</p></Nav.Link>
+          <Nav.Link className='me-5 mt-3' href="#action5"><h4><i class="fa-solid fa-gear me-1"></i>Welcome,<p className='ms-3 mt-1'>ADMIN</p></h4></Nav.Link>
         </Navbar.Collapse>
       </Container>
     </Navbar>
